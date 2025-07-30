@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+import 'dart:io' as io;
 
 import '../theme/colors.dart';
 
@@ -32,48 +35,64 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
     'Doação',
   ];
 
+  Uint8List? _webImage;
+  io.File? _mobileImage;
+
   Future<void> _selecionarImagem() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
     if (pickedFile != null) {
-      setState(() {
-        _imagemSelecionada = File(pickedFile.path);
-      });
+      if (kIsWeb) {
+        final bytes = await pickedFile.readAsBytes();
+        setState(() {
+          _webImage = bytes;
+        });
+      } else {
+        setState(() {
+          _mobileImage = io.File(pickedFile.path);
+        });
+      }
     }
   }
 
- void _salvarObjeto() async {
-  if (_imagemSelecionada == null) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Selecione uma imagem primeiro.'),
-    ));
-    return;
+  void _salvarObjeto() async {
+    ParseFileBase? parseFile;
+
+    // Se houver imagem, prepara o ParseFile
+    if (kIsWeb && _webImage != null) {
+      parseFile = ParseWebFile(_webImage!, name: "imagem.jpg");
+      await parseFile.save();
+    } else if (_mobileImage != null) {
+      parseFile = ParseFile(_mobileImage!);
+      await parseFile.save();
+    }
+
+    final objeto = ParseObject('Objeto')
+      ..set('titulo', _tituloController.text)
+      ..set('descricao', _descricaoController.text)
+      ..set('estadoConservacao', _estadoConservacao)
+      ..set('preferencia', _preferenciaController.text)
+      ..set('tipoNegociacao', _tipoNegociacao);
+
+    // Só adiciona a imagem se tiver sido selecionada
+    if (parseFile != null) {
+      objeto.set('imagem', parseFile);
+    }
+
+    final response = await objeto.save();
+
+    if (response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Objeto salvo com sucesso!')),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar: ${response.error?.message}')),
+      );
+    }
   }
-
-  final parseFile = ParseFile(_imagemSelecionada);
-  await parseFile.save();
-
-  final objeto = ParseObject('Objeto')
-    ..set('titulo', _tituloController.text)
-    ..set('descricao', _descricaoController.text)
-    ..set('estadoConservacao', _estadoConservacao)
-    ..set('preferencia', _preferenciaController.text)
-    ..set('tipoNegociacao', _tipoNegociacao)
-    ..set('imagem', parseFile);
-
-  final response = await objeto.save();
-
-  if (response.success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Objeto salvo com sucesso!')),
-    );
-    Navigator.pop(context);
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro ao salvar: ${response.error?.message}')),
-    );
-  }
-}
 
   void _cancelar() {
     Navigator.pop(context);

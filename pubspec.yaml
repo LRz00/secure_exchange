@@ -10,9 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
   image_picker: ^1.0.4
-  firebase_core: ^2.0.0
-  cloud_firestore: ^4.0.0
-  firebase_storage: ^11.0.0
   parse_server_sdk_flutter: ^7.0.1
   flutter_dotenv: ^5.1.0
 
