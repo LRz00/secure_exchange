@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'firebase_options.dart';
 import 'package:secure_exchange/theme/colors.dart';
 import 'pages/save-object.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+await dotenv.load(); // <- carrega o .env
+
+  await Parse().initialize(
+    dotenv.env['PARSE_APPLICATION_ID']!,
+    dotenv.env['PARSE_SERVER_URL']!,
+    clientKey: dotenv.env['PARSE_CLIENT_KEY'],
+    autoSendSessionId: true,
+    debug: true,
   );
   runApp(MyApp());
 }

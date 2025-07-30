@@ -58,3 +58,5 @@ firebase-debug.*.log
 
 # Google Services (só para Android, não subir esse json)
 **/google-services.json
+
+.env

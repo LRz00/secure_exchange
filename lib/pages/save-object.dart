@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'dart:io';
 
 import '../theme/colors.dart';
@@ -41,15 +42,38 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
     }
   }
 
-  void _salvarObjeto() {
-    // Aqui você pode montar o objeto com os dados e enviar para backend ou salvar localmente
-    print("Título: ${_tituloController.text}");
-    print("Descrição: ${_descricaoController.text}");
-    print("Estado: $_estadoConservacao");
-    print("Preferência: ${_preferenciaController.text}");
-    print("Tipo de Negociação: $_tipoNegociacao");
-    print("Imagem: ${_imagemSelecionada?.path}");
+ void _salvarObjeto() async {
+  if (_imagemSelecionada == null) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('Selecione uma imagem primeiro.'),
+    ));
+    return;
   }
+
+  final parseFile = ParseFile(_imagemSelecionada);
+  await parseFile.save();
+
+  final objeto = ParseObject('Objeto')
+    ..set('titulo', _tituloController.text)
+    ..set('descricao', _descricaoController.text)
+    ..set('estadoConservacao', _estadoConservacao)
+    ..set('preferencia', _preferenciaController.text)
+    ..set('tipoNegociacao', _tipoNegociacao)
+    ..set('imagem', parseFile);
+
+  final response = await objeto.save();
+
+  if (response.success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Objeto salvo com sucesso!')),
+    );
+    Navigator.pop(context);
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erro ao salvar: ${response.error?.message}')),
+    );
+  }
+}
 
   void _cancelar() {
     Navigator.pop(context);
