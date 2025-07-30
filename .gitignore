@@ -46,3 +46,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# Firebase (⚠️ mantenha firebase_options.dart, ignore só credenciais reais)
+firebase-debug.log
+firebase-debug.*.log
+*.firebase/*
+
+# Service account keys (⚠️ nunca subir esses)
+**/serviceAccountKey.json
+
+# Google Services (só para Android, não subir esse json)
+**/google-services.json
