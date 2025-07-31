@@ -24,7 +24,6 @@ Você pode visualizar o protótipo no [Figma aqui](https://www.figma.com/design/
 ## 🛠️ Tecnologias Utilizadas
 
 - **Flutter** (SDK multiplataforma)
-- **Firebase Storage / Imgur** (armazenamento de imagens)
 - **Parse Server SDK Flutter** (para autenticação e persistência)
 
 ---
