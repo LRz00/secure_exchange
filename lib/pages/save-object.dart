@@ -94,7 +94,7 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Objeto salvo com sucesso!')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao salvar: ${response.error?.message}')),
