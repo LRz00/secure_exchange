@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:secure_exchange/theme/colors.dart';
-import 'pages/save-object.dart';
+import 'pages/item-list.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
- await dotenv.load(fileName: 'assets/.env'); // <- carrega o .env
+ await dotenv.load(fileName: "assets/.env"); // <- carrega o .env
 
   await Parse().initialize(
     dotenv.env['PARSE_APPLICATION_ID']!,
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       title: 'Secure EXchange',
       theme: ThemeData(primarySwatch: customSwatch),
       home:
-          SalvarObjetoPage(), //substituir por tela principal ou a que estiver desenvolvendo
+          ListaObjetosPage(), //substituir por tela principal ou a que estiver desenvolvendo
       debugShowCheckedModeBanner: false,
     );
   }
