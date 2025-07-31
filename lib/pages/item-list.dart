@@ -45,7 +45,7 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
   Widget _buildItem(ParseObject objeto) {
     final titulo = objeto.get<String>('titulo') ?? '';
     final descricao = objeto.get<String>('descricao') ?? '';
-    final imagemParseFile = objeto.get<ParseFile>('imagem');
+    final imagemParseFile = objeto.get<ParseFileBase>('imagem');
 
     return GestureDetector(
       onTap: () {

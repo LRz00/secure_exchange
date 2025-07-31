@@ -38,7 +38,7 @@ Future<void> _carregarDono() async {
 
   @override
   Widget build(BuildContext context) {
-    final imagem = widget.objeto.get<ParseFile>('imagem');
+    final imagem = widget.objeto.get<ParseFileBase>('imagem');
     final titulo = widget.objeto.get<String>('titulo') ?? '';
     final descricao = widget.objeto.get<String>('descricao') ?? '';
     final estado = widget.objeto.get<String>('estadoConservacao') ?? '';
