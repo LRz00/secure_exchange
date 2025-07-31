@@ -57,9 +57,17 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
   }
 
   void _salvarObjeto() async {
+    final currentUser = await ParseUser.currentUser() as ParseUser?;
+
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Usuário não está logado')),
+      );
+      return;
+    }
+
     ParseFileBase? parseFile;
 
-    // Se houver imagem, prepara o ParseFile
     if (kIsWeb && _webImage != null) {
       parseFile = ParseWebFile(_webImage!, name: "imagem.jpg");
       await parseFile.save();
@@ -73,9 +81,9 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
       ..set('descricao', _descricaoController.text)
       ..set('estadoConservacao', _estadoConservacao)
       ..set('preferencia', _preferenciaController.text)
-      ..set('tipoNegociacao', _tipoNegociacao);
+      ..set('tipoNegociacao', _tipoNegociacao)
+      ..set('dono', currentUser); // <- Aqui associamos o dono
 
-    // Só adiciona a imagem se tiver sido selecionada
     if (parseFile != null) {
       objeto.set('imagem', parseFile);
     }

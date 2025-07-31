@@ -148,7 +148,7 @@ class _TelaCadastroPageState extends State<TelaCadastroPage> {
               // Link para login
               TextButton(
                 onPressed: () {
-                  // Navegar para login (ainda será criado)
+                   Navigator.of(context).pushReplacementNamed('/login');
                 },
                 child: Text('Já tem conta? Faça login'),
                 style: TextButton.styleFrom(

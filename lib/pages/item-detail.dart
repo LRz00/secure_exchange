@@ -3,19 +3,48 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import '../theme/colors.dart';
 
-class DetalhesObjetoPage extends StatelessWidget {
+class DetalhesObjetoPage extends StatefulWidget {
   final ParseObject objeto;
 
   const DetalhesObjetoPage({Key? key, required this.objeto}) : super(key: key);
 
   @override
+  State<DetalhesObjetoPage> createState() => _DetalhesObjetoPageState();
+}
+
+class _DetalhesObjetoPageState extends State<DetalhesObjetoPage> {
+  ParseUser? dono;
+  String? nomeDono;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarDono();
+  }
+
+Future<void> _carregarDono() async {
+  final donoPointer = widget.objeto.get<ParseUser>('dono');
+
+  if (donoPointer != null) {
+    final ParseUser? donoCompleto = (await donoPointer.fetch()) as ParseUser?;
+
+    setState(() {
+      dono = donoCompleto;
+      nomeDono = donoCompleto?.get<String>('nome') ?? 'Usuário';
+    });
+  }
+}
+
+
+  @override
   Widget build(BuildContext context) {
-    final imagem = objeto.get<ParseFile>('imagem');
-    final titulo = objeto.get<String>('titulo') ?? '';
-    final descricao = objeto.get<String>('descricao') ?? '';
-    final estado = objeto.get<String>('estadoConservacao') ?? '';
-    final preferencia = objeto.get<String>('preferencia') ?? '';
-    final tipoNegociacao = objeto.get<String>('tipoNegociacao') ?? '';
+    final imagem = widget.objeto.get<ParseFile>('imagem');
+    final titulo = widget.objeto.get<String>('titulo') ?? '';
+    final descricao = widget.objeto.get<String>('descricao') ?? '';
+    final estado = widget.objeto.get<String>('estadoConservacao') ?? '';
+    final preferencia = widget.objeto.get<String>('preferencia') ?? '';
+    final tipoNegociacao = widget.objeto.get<String>('tipoNegociacao') ?? '';
+    final dataCadastro = widget.objeto.createdAt;
 
     return Scaffold(
       appBar: AppBar(title: Text('Detalhes do Objeto')),
@@ -23,6 +52,39 @@ class DetalhesObjetoPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
+            // 👤 Info do dono
+            if (nomeDono != null)
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: primaryColor,
+                    child: Text(
+                      nomeDono![0].toUpperCase(),
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nomeDono!,
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      if (dataCadastro != null)
+                        Text(
+                          'Cadastrado em ${dataCadastro.day.toString().padLeft(2, '0')}/${dataCadastro.month.toString().padLeft(2, '0')}/${dataCadastro.year}',
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            const SizedBox(height: 16),
+
+            // 📷 Imagem
             imagem != null
                 ? Image.network(imagem.url!, height: 200, fit: BoxFit.cover)
                 : Container(
@@ -30,6 +92,7 @@ class DetalhesObjetoPage extends StatelessWidget {
                     color: Colors.grey[300],
                     child: Icon(Icons.image, size: 100),
                   ),
+
             const SizedBox(height: 16),
             Text(titulo, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
