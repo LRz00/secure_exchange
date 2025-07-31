@@ -18,3 +18,4 @@ const MaterialColor customSwatch = MaterialColor(
 
 const Color primaryColor = Color(0xFF28006D);
 const Color contrastColor = Colors.white;
+const Color secondaryColor = Color(0xFF44ADFF);

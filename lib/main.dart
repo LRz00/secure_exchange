@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
+import 'package:secure_exchange/pages/home.dart';
 import 'package:secure_exchange/theme/colors.dart';
-import 'pages/item-list.dart';
+import 'pages/auth/login.dart';
+import 'pages/auth/sign-up.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
- await dotenv.load(fileName: "assets/.env"); // <- carrega o .env
+  await dotenv.load(fileName: "assets/.env"); // <- carrega o .env
 
   await Parse().initialize(
     dotenv.env['PARSE_APPLICATION_ID']!,
@@ -23,8 +25,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Secure EXchange',
       theme: ThemeData(primarySwatch: customSwatch),
-      home:
-          ListaObjetosPage(), //substituir por tela principal ou a que estiver desenvolvendo
+      home: WelcomePage(),
+      routes: {
+        '/login': (_) => TelaLoginPage(),
+        '/cadastro': (_) => TelaCadastroPage()
+      },
       debugShowCheckedModeBanner: false,
     );
   }
