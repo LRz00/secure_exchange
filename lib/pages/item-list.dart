@@ -54,7 +54,9 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
           MaterialPageRoute(
             builder: (context) => DetalhesObjetoPage(objeto: objeto),
           ),
-        );
+        ).then((_) {
+          _buscarObjetos();
+        });
       },
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -85,7 +87,11 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => SalvarObjetoPage()),
-      );
+      ).then((result) {
+        if (result == true) {
+          _buscarObjetos();
+        }
+      });
     } else if (index == 2) {
       // Navegar para a tela de perfil (futura)
     } else {
