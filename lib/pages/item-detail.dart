@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+// Ajuste o caminho para a sua página de chat, se necessário
+import 'chat-page.dart';
 import '../theme/colors.dart';
 
 class DetalhesObjetoPage extends StatefulWidget {
@@ -22,19 +24,19 @@ class _DetalhesObjetoPageState extends State<DetalhesObjetoPage> {
     _carregarDono();
   }
 
-Future<void> _carregarDono() async {
-  final donoPointer = widget.objeto.get<ParseUser>('dono');
+  // A função _carregarDono foi mantida exatamente como no seu código original.
+  Future<void> _carregarDono() async {
+    final donoPointer = widget.objeto.get<ParseUser>('dono');
 
-  if (donoPointer != null) {
-    final ParseUser? donoCompleto = (await donoPointer.fetch()) as ParseUser?;
+    if (donoPointer != null) {
+      final ParseUser? donoCompleto = (await donoPointer.fetch()) as ParseUser?;
 
-    setState(() {
-      dono = donoCompleto;
-      nomeDono = donoCompleto?.get<String>('nome') ?? 'Usuário';
-    });
+      setState(() {
+        dono = donoCompleto;
+        nomeDono = donoCompleto?.get<String>('nome') ?? 'Usuário';
+      });
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +47,10 @@ Future<void> _carregarDono() async {
     final preferencia = widget.objeto.get<String>('preferencia') ?? '';
     final tipoNegociacao = widget.objeto.get<String>('tipoNegociacao') ?? '';
     final dataCadastro = widget.objeto.createdAt;
+    
+    // Supondo que as cores venham do seu import de tema
+    const Color primaryColor = Color.fromRGBO(40, 0, 109, 1);
+    const Color contrastColor = Colors.white;
 
     return Scaffold(
       appBar: AppBar(title: Text('Detalhes do Objeto')),
@@ -81,17 +87,21 @@ Future<void> _carregarDono() async {
                     ],
                   ),
                 ],
-              ),
+              )
+            else
+              const Center(child: CircularProgressIndicator()),
+            
             const SizedBox(height: 16),
 
             // 📷 Imagem
-            imagem != null
-                ? Image.network(imagem.url!, height: 200, fit: BoxFit.cover)
-                : Container(
-                    height: 200,
-                    color: Colors.grey[300],
-                    child: Icon(Icons.image, size: 100),
-                  ),
+            if (imagem != null && imagem.url != null)
+              Image.network(imagem.url!, height: 200, fit: BoxFit.cover)
+            else
+              Container(
+                height: 200,
+                color: Colors.grey[300],
+                child: Icon(Icons.image, size: 100, color: Colors.grey[600]),
+              ),
 
             const SizedBox(height: 16),
             Text(titulo, style: Theme.of(context).textTheme.titleLarge),
@@ -120,9 +130,19 @@ Future<void> _carregarDono() async {
             ),
             const SizedBox(height: 12),
             OutlinedButton(
-              onPressed: () {
-                // futura lógica para chat ou contato
-              },
+              // ALTERAÇÃO APLICADA AQUI
+              // O botão fica desabilitado enquanto os dados do dono não forem carregados
+              onPressed: dono == null
+                  ? null
+                  : () {
+                      // Navega para a tela de chat, passando o objeto do dono
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatPage(destinatario: dono!),
+                        ),
+                      );
+                    },
               style: OutlinedButton.styleFrom(
                 foregroundColor: primaryColor,
                 backgroundColor: contrastColor,
@@ -140,3 +160,6 @@ Future<void> _carregarDono() async {
     );
   }
 }
+
+// Lembre-se que sua ChatPage precisa aceitar o destinatário, assim:
+//
