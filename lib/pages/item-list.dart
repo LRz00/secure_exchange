@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import '../theme/colors.dart';
+import 'item-detail.dart';
 import 'save-object.dart';
 
 class ListaObjetosPage extends StatefulWidget {
@@ -46,24 +47,35 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
     final descricao = objeto.get<String>('descricao') ?? '';
     final imagemParseFile = objeto.get<ParseFile>('imagem');
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        leading: imagemParseFile != null
-            ? Image.network(
-                imagemParseFile.url!,
-                width: 60,
-                height: 60,
-                fit: BoxFit.cover,
-              )
-            : Container(
-                width: 60,
-                height: 60,
-                color: Colors.grey.shade300,
-                child: Icon(Icons.image_not_supported),
-              ),
-        title: Text(titulo),
-        subtitle: Text(descricao, maxLines: 2, overflow: TextOverflow.ellipsis),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetalhesObjetoPage(objeto: objeto),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: ListTile(
+          leading: imagemParseFile != null
+              ? Image.network(
+                  imagemParseFile.url!,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                )
+              : Container(
+                  width: 60,
+                  height: 60,
+                  color: Colors.grey.shade300,
+                  child: Icon(Icons.image_not_supported),
+                ),
+          title: Text(titulo),
+          subtitle:
+              Text(descricao, maxLines: 2, overflow: TextOverflow.ellipsis),
+        ),
       ),
     );
   }
