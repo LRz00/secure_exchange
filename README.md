@@ -33,8 +33,8 @@ Você pode visualizar o protótipo no [Figma aqui](https://www.figma.com/design/
 
 1. **Clone o repositório**  
 ```bash
-git clone https://github.com/seu-usuario/secureexchange.git
-cd secureexchange
+git clone https://github.com/LRz00/secure_exchange.git
+cd secure_exchange
 ```
 
 2. **Instale as dependências**
