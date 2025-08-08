@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
-// Ajuste o caminho para a sua página de chat, se necessário
+import 'trading-page.dart';
+
 import 'chat-page.dart';
 import '../theme/colors.dart';
 
@@ -37,6 +38,41 @@ class _DetalhesObjetoPageState extends State<DetalhesObjetoPage> {
       });
     }
   }
+
+  // Função temporária para ser executada UMA ÚNICA VEZ
+Future<void> definirSchemaDoChat() async {
+  print("Tentando definir o esquema da classe 'Chat'...");
+
+  // Criamos ponteiros para dois usuários quaisquer (não precisam existir de verdade)
+  final dummyUser1 = ParseObject('_User')..objectId = 'dummy_user_id_1';
+  final dummyUser2 = ParseObject('_User')..objectId = 'dummy_user_id_2';
+  
+  // Criamos um objeto de Chat temporário
+  final chatSchemaSetter = ParseObject('Chat')
+    ..set('participants', [dummyUser1, dummyUser2]);
+    // A chave está aqui: estamos passando um Array de ParseObjects (Ponteiros)
+
+  try {
+    // Tentamos salvar este objeto. Ele vai falhar se a classe Chat não existir,
+    // mas o Parse tentará criar a coluna 'participants' com o tipo correto.
+    // Se a classe e a coluna já existem, ele vai travar o tipo.
+    final response = await chatSchemaSetter.save();
+
+    if (response.success) {
+      print("✅ Esquema definido com sucesso! O objeto foi salvo.");
+      // Você pode deletar este objeto de teste do seu painel depois.
+      await response.result.delete();
+      print("✅ Objeto de teste deletado.");
+    } else {
+      // Mesmo que falhe por uma "Constraint" (se a coluna já existe), 
+      // o tipo provavelmente foi ajustado.
+      print("ℹ️ Ocorreu um erro ao salvar (o que pode ser normal se a coluna já existe), mas o esquema deve ter sido atualizado. Verifique o painel.");
+      print("Erro: ${response.error?.message}");
+    }
+  } catch(e) {
+    print("Ocorreu uma exceção: $e");
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +152,14 @@ class _DetalhesObjetoPageState extends State<DetalhesObjetoPage> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                // futura lógica de proposta de troca
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TradingPage( 
+                      itemDesejado: widget.objeto,
+                    ),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
@@ -160,6 +203,3 @@ class _DetalhesObjetoPageState extends State<DetalhesObjetoPage> {
     );
   }
 }
-
-// Lembre-se que sua ChatPage precisa aceitar o destinatário, assim:
-//

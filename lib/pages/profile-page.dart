@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
-// ALTERAÇÃO 1: Convertido para StatefulWidget
 class ProfilePage extends StatefulWidget {
-  // A página agora recebe o usuário cujo perfil será exibido
   final ParseUser user;
 
   const ProfilePage({super.key, required this.user});
@@ -22,11 +20,9 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadUserItems();
   }
 
-  // ALTERAÇÃO 2: Função para carregar os itens do usuário do banco de dados
   Future<void> _loadUserItems() async {
-    // Substitua 'Objeto' pelo nome da sua classe de itens no Parse
     final queryBuilder = QueryBuilder<ParseObject>(ParseObject('Objeto'))
-      ..whereEqualTo('dono', widget.user); // Filtra os itens pelo dono
+      ..whereEqualTo('dono', widget.user); 
 
     final response = await queryBuilder.query();
 
@@ -39,7 +35,6 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _isLoading = false;
       });
-      // Opcional: mostrar um erro para o usuário
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erro ao carregar itens: ${response.error?.message}'),
@@ -51,7 +46,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // ALTERAÇÃO 3: Dados do usuário agora são dinâmicos
     final nome = widget.user.get<String>('nome') ?? 'Usuário';
     final inicial = nome.isNotEmpty ? nome[0].toUpperCase() : '?';
 
@@ -85,7 +79,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 32),
 
-            // ALTERAÇÃO 4: Lista de itens dinâmica
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
