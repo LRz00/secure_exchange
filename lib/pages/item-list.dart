@@ -4,6 +4,7 @@ import '../theme/colors.dart';
 import 'chat-list-page.dart';
 import 'item-detail.dart';
 import 'save-object.dart';
+import 'profile-page.dart';
 
 class ListaObjetosPage extends StatefulWidget {
   @override
@@ -83,7 +84,8 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
     );
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index) async { // <-- Adiciona async
+    // Lógica para o botão "Adicionar" (índice 1)
     if (index == 1) {
       Navigator.push(
         context,
@@ -93,13 +95,37 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
           _buscarObjetos();
         }
       });
-    } else if (index == 2) {
-      // Navegar para a tela de perfil (futura)
+    } 
+    // LÓGICA PARA O BOTÃO "PERFIL" (índice 2)
+    else if (index == 2) {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+
+      if (currentUser != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePage(user: currentUser),
+          ),
+        );
+      } else {
+        // Opcional: Mostrar uma mensagem se o usuário não estiver logado
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Faça login para acessar o perfil.')),
+          );
+        }
+      }
     } else if(index==3) {
        Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ChatsListPage()),
       );
+    }
+    
+    else {
+      setState(() {
+        _paginaAtual = index;
+      });
     }
   }
 
