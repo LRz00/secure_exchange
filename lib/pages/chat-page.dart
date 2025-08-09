@@ -1,15 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import 'profile-page.dart';
 
-// Definição das cores personalizadas com base no RGB fornecido
+// Definição das cores personalizadas
 const Color roxo = Color.fromRGBO(40, 0, 109, 1);
 const Color cinzaClaro = Color.fromRGBO(230, 229, 235, 1);
 const Color branco = Colors.white;
 
 class ChatPage extends StatefulWidget {
-  // ALTERAÇÃO 1: A página agora precisa receber o usuário destinatário.
   final ParseUser destinatario;
 
   const ChatPage({
@@ -23,21 +23,101 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
-
-  // ALTERAÇÃO 2: A lista de mensagens agora começa vazia.
-  // Você deverá carregar as mensagens da conversa aqui.
   final List<Map<String, dynamic>> _messages = [];
+  late Timer _timer;
+  late ParseUser _currentUser;
 
   @override
   void initState() {
     super.initState();
-    // Você pode chamar uma função aqui para carregar as mensagens da conversa
-    // ex: _carregarMensagens();
+    _getCurrentUser();
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _fetchMessages();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _getCurrentUser() async {
+    _currentUser = await ParseUser.currentUser() as ParseUser;
+    await _fetchMessages();
+  }
+
+  Future<void> _fetchMessages() async {
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser;
+      
+      // Query para mensagens enviadas pelo usuário atual para o destinatário
+      final QueryBuilder<ParseObject> sentMessagesQuery = QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
+        ..whereEqualTo('sender', currentUser.toPointer())
+        ..whereEqualTo('receiver', widget.destinatario.toPointer())
+        ..orderByDescending('createdAt');
+
+      // Query para mensagens recebidas do destinatário
+      final QueryBuilder<ParseObject> receivedMessagesQuery = QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
+        ..whereEqualTo('sender', widget.destinatario.toPointer())
+        ..whereEqualTo('receiver', currentUser.toPointer())
+        ..orderByDescending('createdAt');
+
+      // Executa ambas as queries
+      final ParseResponse sentResponse = await sentMessagesQuery.query();
+      final ParseResponse receivedResponse = await receivedMessagesQuery.query();
+
+      if (sentResponse.success && receivedResponse.success) {
+        final List<ParseObject> sentMessages = sentResponse.results?.cast<ParseObject>() ?? [];
+        final List<ParseObject> receivedMessages = receivedResponse.results?.cast<ParseObject>() ?? [];
+
+        // Combina e ordena todas as mensagens
+        final List<ParseObject> allMessages = [...sentMessages, ...receivedMessages];
+        allMessages.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+
+        setState(() {
+          _messages.clear();
+          for (var message in allMessages) {
+            _messages.add({
+              'text': message.get<String>('content') ?? '',
+              'isMe': message.get<ParseObject>('sender')?.objectId == currentUser.objectId,
+              'createdAt': message.createdAt,
+            });
+          }
+        });
+      }
+    } catch (e) {
+      print('Erro ao buscar mensagens: $e');
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    if (_messageController.text.trim().isEmpty) return;
+
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser;
+      
+      final ParseObject newMessage = ParseObject('ChatMessage')
+        ..set('content', _messageController.text.trim())
+        ..set('sender', currentUser.toPointer())
+        ..set('receiver', widget.destinatario.toPointer());
+
+      final ParseResponse response = await newMessage.save();
+
+      if (response.success) {
+        _messageController.clear();
+        await _fetchMessages(); // Atualiza a lista imediatamente
+      } else {
+        print('Erro ao enviar mensagem: ${response.error?.message}');
+      }
+    } catch (e) {
+      print('Erro ao enviar mensagem: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Pega o nome e a inicial do destinatário para usar na AppBar
     final nomeDestinatario = widget.destinatario.get<String>('nome') ?? 'Usuário';
     final inicial = nomeDestinatario.isNotEmpty ? nomeDestinatario[0].toUpperCase() : '?';
 
@@ -50,10 +130,8 @@ class _ChatPageState extends State<ChatPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        // ALTERAÇÃO 3: O título agora é dinâmico com os dados do destinatário.
         title: GestureDetector(
           onTap: () {
-            // Se a ProfilePage também precisar do usuário, passe-o aqui
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => ProfilePage(user: widget.destinatario)),
@@ -79,7 +157,7 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                   const Text(
-                    'online', // Você pode deixar isso ou adaptar para um status real
+                    'online',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
@@ -116,7 +194,6 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageComposer() {
-    // Nenhuma alteração aqui...
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -144,7 +221,7 @@ class _ChatPageState extends State<ChatPage> {
                   decoration: const InputDecoration(
                     contentPadding:
                         EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    hintText: 'Menssagem',
+                    hintText: 'Mensagem',
                     border: InputBorder.none,
                   ),
                 ),
@@ -152,11 +229,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
             const SizedBox(width: 12),
             InkWell(
-              onTap: () {
-                // Lógica para enviar a mensagem para o destinatário
-                print('Mensagem enviada: ${_messageController.text}');
-                _messageController.clear();
-              },
+              onTap: _sendMessage,
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: const BoxDecoration(
@@ -174,7 +247,6 @@ class _ChatPageState extends State<ChatPage> {
 }
 
 class _MessageBubble extends StatelessWidget {
-  // Nenhuma alteração aqui...
   final String text;
   final bool isMe;
 
