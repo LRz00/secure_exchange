@@ -51,37 +51,47 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _fetchMessages() async {
     try {
       final currentUser = await ParseUser.currentUser() as ParseUser;
-      
+
       // Query para mensagens enviadas pelo usuário atual para o destinatário
-      final QueryBuilder<ParseObject> sentMessagesQuery = QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
-        ..whereEqualTo('sender', currentUser.toPointer())
-        ..whereEqualTo('receiver', widget.destinatario.toPointer())
-        ..orderByDescending('createdAt');
+      final QueryBuilder<ParseObject> sentMessagesQuery =
+          QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
+            ..whereEqualTo('sender', currentUser.toPointer())
+            ..whereEqualTo('receiver', widget.destinatario.toPointer())
+            ..orderByAscending('createdAt'); // Alterado para orderByAscending
 
       // Query para mensagens recebidas do destinatário
-      final QueryBuilder<ParseObject> receivedMessagesQuery = QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
-        ..whereEqualTo('sender', widget.destinatario.toPointer())
-        ..whereEqualTo('receiver', currentUser.toPointer())
-        ..orderByDescending('createdAt');
+      final QueryBuilder<ParseObject> receivedMessagesQuery =
+          QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
+            ..whereEqualTo('sender', widget.destinatario.toPointer())
+            ..whereEqualTo('receiver', currentUser.toPointer())
+            ..orderByAscending('createdAt'); // Alterado para orderByAscending
 
       // Executa ambas as queries
       final ParseResponse sentResponse = await sentMessagesQuery.query();
-      final ParseResponse receivedResponse = await receivedMessagesQuery.query();
+      final ParseResponse receivedResponse =
+          await receivedMessagesQuery.query();
 
       if (sentResponse.success && receivedResponse.success) {
-        final List<ParseObject> sentMessages = sentResponse.results?.cast<ParseObject>() ?? [];
-        final List<ParseObject> receivedMessages = receivedResponse.results?.cast<ParseObject>() ?? [];
+        final List<ParseObject> sentMessages =
+            sentResponse.results?.cast<ParseObject>() ?? [];
+        final List<ParseObject> receivedMessages =
+            receivedResponse.results?.cast<ParseObject>() ?? [];
 
-        // Combina e ordena todas as mensagens
-        final List<ParseObject> allMessages = [...sentMessages, ...receivedMessages];
-        allMessages.sort((a, b) => b.createdAt!.compareTo(a.createdAt!));
+        // Combina todas as mensagens
+        final List<ParseObject> allMessages = [
+          ...sentMessages,
+          ...receivedMessages
+        ];
+        // Ordena em ordem crescente (mais antigas primeiro, mais recentes por último)
+        allMessages.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
 
         setState(() {
           _messages.clear();
           for (var message in allMessages) {
             _messages.add({
               'text': message.get<String>('content') ?? '',
-              'isMe': message.get<ParseObject>('sender')?.objectId == currentUser.objectId,
+              'isMe': message.get<ParseObject>('sender')?.objectId ==
+                  currentUser.objectId,
               'createdAt': message.createdAt,
             });
           }
@@ -97,7 +107,7 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       final currentUser = await ParseUser.currentUser() as ParseUser;
-      
+
       final ParseObject newMessage = ParseObject('ChatMessage')
         ..set('content', _messageController.text.trim())
         ..set('sender', currentUser.toPointer())
@@ -118,8 +128,10 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final nomeDestinatario = widget.destinatario.get<String>('nome') ?? 'Usuário';
-    final inicial = nomeDestinatario.isNotEmpty ? nomeDestinatario[0].toUpperCase() : '?';
+    final nomeDestinatario =
+        widget.destinatario.get<String>('nome') ?? 'Usuário';
+    final inicial =
+        nomeDestinatario.isNotEmpty ? nomeDestinatario[0].toUpperCase() : '?';
 
     return Scaffold(
       backgroundColor: branco,
@@ -134,7 +146,8 @@ class _ChatPageState extends State<ChatPage> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ProfilePage(user: widget.destinatario)),
+              MaterialPageRoute(
+                  builder: (context) => ProfilePage(user: widget.destinatario)),
             );
           },
           child: Row(
@@ -142,7 +155,8 @@ class _ChatPageState extends State<ChatPage> {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: cinzaClaro,
-                child: Text(inicial, style: const TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(inicial,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 12),
               Column(
@@ -173,19 +187,20 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Expanded(
             child: _messages.isEmpty
-              ? const Center(child: Text("Envie uma mensagem para começar."))
-              : ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.all(10.0),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final message = _messages[_messages.length - 1 - index];
-                    return _MessageBubble(
-                      text: message['text'],
-                      isMe: message['isMe'],
-                    );
-                  },
-                ),
+                ? const Center(child: Text("Envie uma mensagem para começar. Nunca compartilhe informações pessoais com estranhos."))
+                : ListView.builder(
+                    // Remova o reverse: true
+                    padding: const EdgeInsets.all(10.0),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      // Use o índice diretamente sem inverter
+                      final message = _messages[index];
+                      return _MessageBubble(
+                        text: message['text'],
+                        isMe: message['isMe'],
+                      );
+                    },
+                  ),
           ),
           _buildMessageComposer(),
         ],
@@ -270,8 +285,10 @@ class _MessageBubble extends StatelessWidget {
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
-            bottomLeft: isMe ? const Radius.circular(16) : const Radius.circular(0),
-            bottomRight: isMe ? const Radius.circular(0) : const Radius.circular(16),
+            bottomLeft:
+                isMe ? const Radius.circular(16) : const Radius.circular(0),
+            bottomRight:
+                isMe ? const Radius.circular(0) : const Radius.circular(16),
           ),
         ),
         child: Text(
