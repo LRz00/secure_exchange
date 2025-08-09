@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import '../theme/colors.dart';
+import 'chat-list-page.dart';
 import 'item-detail.dart';
 import 'save-object.dart';
 
@@ -94,8 +95,11 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
       });
     } else if (index == 2) {
       // Navegar para a tela de perfil (futura)
-    } else {
-      // Tela atual
+    } else if(index==3) {
+       Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ChatsListPage()),
+      );
     }
   }
 
@@ -135,6 +139,7 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
         currentIndex: _paginaAtual,
         onTap: _onItemTapped,
         selectedItemColor: primaryColor,
+        unselectedItemColor: customSwatch.shade700,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -147,6 +152,11 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Perfil',
+          ),
+          BottomNavigationBarItem(
+            // Novo item adicionado
+            icon: Icon(Icons.chat),
+            label: 'Chats',
           ),
         ],
       ),
