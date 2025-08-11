@@ -24,6 +24,8 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _loadUserItems();
+    _loadNegociacoes();
+    _loadPropostas();
   }
 
   Future<void> _loadUserItems() async {
@@ -52,6 +54,35 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  List<ParseObject> _negociacoes = [];
+  List<ParseObject> _propostas = [];
+
+  Future<void> _loadNegociacoes() async {
+    final query = QueryBuilder<ParseObject>(ParseObject('PropostaTroca'))
+      ..whereEqualTo('destinatario', widget.user)
+      ..whereEqualTo('status', _negociacaoStatus.name)
+      ..includeObject(
+          ['itemDesejado', 'remetente']); // Carrega os objetos relacionados
+
+    final res = await query.query();
+    if (res.success && res.results != null) {
+      setState(() => _negociacoes = res.results!.cast<ParseObject>());
+    }
+  }
+
+  Future<void> _loadPropostas() async {
+    final query = QueryBuilder<ParseObject>(ParseObject('PropostaTroca'))
+      ..whereEqualTo('remetente', widget.user)
+      ..whereEqualTo('status', _propostaStatus.name)
+      ..includeObject(
+          ['itemDesejado', 'destinatario']); // Carrega os objetos relacionados
+
+    final res = await query.query();
+    if (res.success && res.results != null) {
+      setState(() => _propostas = res.results!.cast<ParseObject>());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final nome = widget.user.get<String>('nome') ?? 'Usuário';
@@ -73,10 +104,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: const Color.fromRGBO(230, 229, 235, 1),
-                  child: Text(inicial, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  child: Text(inicial,
+                      style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87)),
                 ),
                 const SizedBox(height: 12),
-                Text(nome, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
+                Text(nome,
+                    style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87)),
               ],
             ),
           ),
@@ -128,7 +167,9 @@ class _ProfilePageState extends State<ProfilePage> {
       return const Center(child: CircularProgressIndicator());
     }
     if (_items.isEmpty) {
-      return const Center(child: Text('Você não possui itens cadastrados.', style: TextStyle(fontSize: 16, color: Colors.grey)));
+      return const Center(
+          child: Text('Você não possui itens cadastrados.',
+              style: TextStyle(fontSize: 16, color: Colors.grey)));
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -148,30 +189,56 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: const EdgeInsets.all(16.0),
           child: SegmentedButton<StatusFiltro>(
             segments: const [
-              ButtonSegment(value: StatusFiltro.pendente, label: Text('Pendentes')),
-              ButtonSegment(value: StatusFiltro.finalizada, label: Text('Finalizadas')),
+              ButtonSegment(
+                  value: StatusFiltro.pendente, label: Text('Pendentes')),
+              ButtonSegment(
+                  value: StatusFiltro.finalizada, label: Text('Finalizadas')),
             ],
             selected: {_negociacaoStatus},
             onSelectionChanged: (newSelection) {
-              setState(() => _negociacaoStatus = newSelection.first);
+              setState(() {
+                _negociacaoStatus = newSelection.first;
+              });
+              _loadNegociacoes();
             },
           ),
         ),
         Expanded(
-          // TODO: Substituir este placeholder pela sua lista de negociações
-          child: Center(
-            child: Text(
-              'Histórico de negociações\n(${_negociacaoStatus == StatusFiltro.pendente ? "Pendentes" : "Finalizadas"})',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-          ),
+          child: _negociacoes.isEmpty
+              ? const Center(child: Text('Nenhuma negociação encontrada.'))
+              : ListView.builder(
+                  itemCount: _negociacoes.length,
+                  itemBuilder: (context, index) {
+                    final proposta = _negociacoes[index];
+                    final itemDesejado =
+                        proposta.get<ParseObject>('itemDesejado');
+                    final itensOfertados =
+                        proposta.get<List<dynamic>>('itensOfertados') ?? [];
+                    final remetente = proposta.get<ParseUser>('remetente');
+
+                    return ListTile(
+                      title: Text(
+                          'Proposta de ${remetente?.get<String>('nome') ?? 'Usuário'}'),
+                      subtitle: Text(
+                        'Deseja: ${itemDesejado?.get<String>('titulo') ?? 'Item desconhecido'}\n'
+                        'Ofertas: ${itensOfertados.length} item(ns)',
+                      ),
+                      trailing: proposta.get<num>('valorEmDinheiro') != null
+                          ? Text('R\$ ${proposta.get<num>('valorEmDinheiro')}')
+                          : null,
+                      onTap: () {
+                        // Aqui você pode adicionar navegação para detalhes da proposta
+                      },
+                    );
+                  },
+                ),
         ),
       ],
     );
   }
 
   // Constrói o conteúdo da aba "Propostas"
+
   Widget _buildPropostasTab() {
     return Column(
       children: [
@@ -179,24 +246,50 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: const EdgeInsets.all(16.0),
           child: SegmentedButton<StatusFiltro>(
             segments: const [
-              ButtonSegment(value: StatusFiltro.pendente, label: Text('Pendentes')),
-              ButtonSegment(value: StatusFiltro.finalizada, label: Text('Finalizadas')),
+              ButtonSegment(
+                  value: StatusFiltro.pendente, label: Text('Pendentes')),
+              ButtonSegment(
+                  value: StatusFiltro.finalizada, label: Text('Finalizadas')),
             ],
             selected: {_propostaStatus},
             onSelectionChanged: (newSelection) {
-              setState(() => _propostaStatus = newSelection.first);
+              setState(() {
+                _propostaStatus = newSelection.first;
+              });
+              _loadPropostas();
             },
           ),
         ),
         Expanded(
-          // TODO: Substituir este placeholder pela sua lista de propostas
-          child: Center(
-            child: Text(
-              'Histórico de propostas feitas\n(${_propostaStatus == StatusFiltro.pendente ? "Pendentes" : "Finalizadas"})',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
-            ),
-          ),
+          child: _propostas.isEmpty
+              ? const Center(child: Text('Nenhuma proposta enviada.'))
+              : ListView.builder(
+                  itemCount: _propostas.length,
+                  itemBuilder: (context, index) {
+                    final proposta = _propostas[index];
+                    final itemDesejado =
+                        proposta.get<ParseObject>('itemDesejado');
+                    final itensOfertados =
+                        proposta.get<List<dynamic>>('itensOfertados') ?? [];
+                    final destinatario =
+                        proposta.get<ParseUser>('destinatario');
+
+                    return ListTile(
+                      title: Text(
+                          'Proposta para ${destinatario?.get<String>('nome') ?? 'Usuário'}'),
+                      subtitle: Text(
+                        'Você deseja: ${itemDesejado?.get<String>('titulo') ?? 'Item desconhecido'}\n'
+                        'Você ofereceu: ${itensOfertados.length} item(ns)',
+                      ),
+                      trailing: proposta.get<num>('valorEmDinheiro') != null
+                          ? Text('R\$ ${proposta.get<num>('valorEmDinheiro')}')
+                          : null,
+                      onTap: () {
+                        // Aqui você pode adicionar navegação para detalhes da proposta
+                      },
+                    );
+                  },
+                ),
         ),
       ],
     );
@@ -211,12 +304,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12), // Reduzido o padding para acomodar a imagem
+      padding:
+          const EdgeInsets.all(12), // Reduzido o padding para acomodar a imagem
       decoration: BoxDecoration(
-        color: const Color(0xFFF9F3FF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200)
-      ),
+          color: const Color(0xFFF9F3FF),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200)),
       // ALTERADO: Usamos uma Row para colocar a imagem ao lado do texto
       child: Row(
         children: [
@@ -224,41 +317,43 @@ class _ProfilePageState extends State<ProfilePage> {
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
             child: imagemParseFile != null && imagemParseFile.url != null
-              // Se tiver imagem, mostra
-              ? Image.network(
-                  imagemParseFile.url!,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  // Adiciona um placeholder enquanto carrega
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      color: Colors.grey.shade300,
-                      child: const Center(child: CircularProgressIndicator()),
-                    );
-                  },
-                  // Adiciona tratamento de erro
-                  errorBuilder: (context, error, stackTrace) {
-                     return Container(
-                      width: 80,
-                      height: 80,
-                      color: Colors.grey.shade300,
-                      child: Icon(Icons.broken_image, color: Colors.grey.shade600),
-                    );
-                  },
-                )
-              // Se não tiver imagem, mostra um placeholder
-              : Container(
-                  width: 80,
-                  height: 80,
-                  color: Colors.grey.shade300,
-                  child: Icon(Icons.image_not_supported, color: Colors.grey.shade600),
-                ),
+                // Se tiver imagem, mostra
+                ? Image.network(
+                    imagemParseFile.url!,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    // Adiciona um placeholder enquanto carrega
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        width: 80,
+                        height: 80,
+                        color: Colors.grey.shade300,
+                        child: const Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                    // Adiciona tratamento de erro
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 80,
+                        height: 80,
+                        color: Colors.grey.shade300,
+                        child: Icon(Icons.broken_image,
+                            color: Colors.grey.shade600),
+                      );
+                    },
+                  )
+                // Se não tiver imagem, mostra um placeholder
+                : Container(
+                    width: 80,
+                    height: 80,
+                    color: Colors.grey.shade300,
+                    child: Icon(Icons.image_not_supported,
+                        color: Colors.grey.shade600),
+                  ),
           ),
-          
+
           const SizedBox(width: 16), // Espaçamento entre a imagem e o texto
 
           // Coluna do Texto
@@ -269,9 +364,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Text(
                   titulo,
                   style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16
-                  ),
+                      fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 4),
                 if (descricao.isNotEmpty)

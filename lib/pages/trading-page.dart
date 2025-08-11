@@ -41,20 +41,20 @@ class _TradingPageState extends State<TradingPage> {
   }
 
   Future<void> _cadastrarNovoItem() async {
-  // Navega para a tela de cadastro e aguarda um resultado
-  final novoItem = await Navigator.push<ParseObject>(
-    context,
-    MaterialPageRoute(builder: (context) => SalvarObjetoPage()),
-  );
+    // Navega para a tela de cadastro e aguarda um resultado
+    final novoItem = await Navigator.push<ParseObject>(
+      context,
+      MaterialPageRoute(builder: (context) => SalvarObjetoPage()),
+    );
 
-  // Se o usuário salvou um novo item (e não apenas voltou)
-  if (novoItem != null) {
-    setState(() {
-      // Adiciona o novo item diretamente na lista da oferta
-      itensOfertados.add(novoItem);
-    });
+    // Se o usuário salvou um novo item (e não apenas voltou)
+    if (novoItem != null) {
+      setState(() {
+        // Adiciona o novo item diretamente na lista da oferta
+        itensOfertados.add(novoItem);
+      });
+    }
   }
-}
 
   @override
   void dispose() {
@@ -78,14 +78,17 @@ class _TradingPageState extends State<TradingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Item que você receberá:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('Item que você receberá:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               _buildItemCard(widget.itemDesejado),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Center(child: Icon(Icons.swap_vert, size: 40, color: Colors.grey)),
+                child: Center(
+                    child: Icon(Icons.swap_vert, size: 40, color: Colors.grey)),
               ),
-              const Text('Sua oferta:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text('Sua oferta:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               _buildAreaDaOferta(),
               const SizedBox(height: 24), // Espaço extra no final do scroll
@@ -121,7 +124,8 @@ class _TradingPageState extends State<TradingPage> {
                     : null,
               ),
               child: (imagem == null || imagem.url == null)
-                  ? Icon(Icons.image_not_supported_outlined, color: Colors.grey[400])
+                  ? Icon(Icons.image_not_supported_outlined,
+                      color: Colors.grey[400])
                   : null,
             ),
             const SizedBox(width: 16),
@@ -131,7 +135,8 @@ class _TradingPageState extends State<TradingPage> {
                 children: [
                   Text(
                     titulo,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -141,7 +146,7 @@ class _TradingPageState extends State<TradingPage> {
       ),
     );
   }
-  
+
   // Área de oferta (com a correção anterior já aplicada)
   Widget _buildAreaDaOferta() {
     return Container(
@@ -156,10 +161,10 @@ class _TradingPageState extends State<TradingPage> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(16.0),
-                child: Text('Adicione itens ou dinheiro à sua oferta abaixo.', style: TextStyle(color: Colors.grey)),
+                child: Text('Adicione itens ou dinheiro à sua oferta abaixo.',
+                    style: TextStyle(color: Colors.grey)),
               ),
             ),
-          
           if (itensOfertados.isNotEmpty)
             Column(
               children: itensOfertados.map((item) {
@@ -175,35 +180,54 @@ class _TradingPageState extends State<TradingPage> {
                       right: 0,
                       child: InkWell(
                         onTap: () => _removerItem(index),
-                        child: const CircleAvatar(radius: 12, backgroundColor: Colors.red, child: Icon(Icons.close, color: Colors.white, size: 16)),
+                        child: const CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.red,
+                            child: Icon(Icons.close,
+                                color: Colors.white, size: 16)),
                       ),
                     )
                   ],
                 );
               }).toList(),
             ),
-          
           const SizedBox(height: 16),
-
           TextFormField(
             controller: _moneyController,
-            onChanged: (value) => setState(() => valorEmDinheiro = double.tryParse(value) ?? 0.0),
+            onChanged: (value) =>
+                setState(() => valorEmDinheiro = double.tryParse(value) ?? 0.0),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
+            ],
             decoration: InputDecoration(
               prefixText: 'R\$ ',
               labelText: 'Valor em dinheiro (opcional)',
               border: const OutlineInputBorder(),
-              suffixIcon: _moneyController.text.isNotEmpty ? IconButton(icon: const Icon(Icons.clear), onPressed: () => setState(() {_moneyController.clear(); valorEmDinheiro = 0;})) : null,
+              suffixIcon: _moneyController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => setState(() {
+                            _moneyController.clear();
+                            valorEmDinheiro = 0;
+                          }))
+                  : null,
             ),
           ),
           const SizedBox(height: 20),
-
           Row(
             children: [
-              Expanded(child: OutlinedButton.icon(onPressed: _adicionarItem, icon: const Icon(Icons.add_circle_outline), label: const Text('Adicionar Item'))),
+              Expanded(
+                  child: OutlinedButton.icon(
+                      onPressed: _adicionarItem,
+                      icon: const Icon(Icons.add_circle_outline),
+                      label: const Text('Adicionar Item'))),
               const SizedBox(width: 12),
-              Expanded(child: OutlinedButton.icon(onPressed: _cadastrarNovoItem, icon: const Icon(Icons.add_box_outlined), label: const Text('Cadastrar Novo'))),
+              Expanded(
+                  child: OutlinedButton.icon(
+                      onPressed: _cadastrarNovoItem,
+                      icon: const Icon(Icons.add_box_outlined),
+                      label: const Text('Cadastrar Novo'))),
             ],
           )
         ],
@@ -215,10 +239,13 @@ class _TradingPageState extends State<TradingPage> {
   Widget _buildBottomActionBar() {
     final isOfferEmpty = itensOfertados.isEmpty && valorEmDinheiro == 0;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), // Padding para não colar na borda
+      padding: const EdgeInsets.fromLTRB(
+          16, 12, 16, 24), // Padding para não colar na borda
       decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 0)],
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 0)
+        ],
       ),
       child: Row(
         children: [
@@ -226,17 +253,64 @@ class _TradingPageState extends State<TradingPage> {
             child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancelar'),
-              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12), foregroundColor: primaryColor, side: const BorderSide(color: primaryColor)),
+              style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  foregroundColor: primaryColor,
+                  side: const BorderSide(color: primaryColor)),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
-              onPressed: isOfferEmpty ? null : () {
-                print('Proposta confirmada com ${itensOfertados.length} itens e R\$${valorEmDinheiro.toStringAsFixed(2)}');
-              },
+              onPressed: isOfferEmpty
+                  ? null
+                  : () async {
+                      ParseUser? usuarioAtual =
+                          await ParseUser.currentUser() as ParseUser?;
+                      if (usuarioAtual != null) {
+                        await usuarioAtual.fetch();
+                      }
+
+                      final donoDoItem = widget.itemDesejado.get<ParseUser>('dono');
+
+                      if (usuarioAtual == null || donoDoItem == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'Erro: não foi possível identificar os usuários.')),
+                        );
+                        return;
+                      }
+
+                      final proposta = ParseObject('PropostaTroca')
+                        ..set('remetente', usuarioAtual)
+                        ..set('destinatario', donoDoItem)
+                        ..set('itemDesejado', widget.itemDesejado)
+                        ..set('itensOfertados', itensOfertados)
+                        ..set('valorEmDinheiro', valorEmDinheiro)
+                        ..set('status', 'pendente');
+
+                      final response = await proposta.save();
+                      if (response.success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Proposta enviada com sucesso!')),
+                        );
+                        Navigator.of(context).pop();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text('Erro: ${response.error?.message}')),
+                        );
+                      }
+                    },
               child: const Text('Confirmar Troca'),
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12), backgroundColor: primaryColor, foregroundColor: contrastColor, disabledBackgroundColor: Colors.grey),
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: primaryColor,
+                  foregroundColor: contrastColor,
+                  disabledBackgroundColor: Colors.grey),
             ),
           ),
         ],
