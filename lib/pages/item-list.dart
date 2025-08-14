@@ -165,7 +165,7 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
         currentIndex: _paginaAtual,
         onTap: _onItemTapped,
         selectedItemColor: primaryColor,
-        unselectedItemColor: customSwatch.shade700,
+        unselectedItemColor: Colors.grey.shade700,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

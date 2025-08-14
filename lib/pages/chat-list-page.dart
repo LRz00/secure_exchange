@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'chat-page.dart';
 
+import 'item-list.dart';
+import 'save-object.dart';
+import 'profile-page.dart';
+import '../theme/colors.dart'; 
+
 class ChatsListPage extends StatefulWidget {
   const ChatsListPage({Key? key}) : super(key: key);
 
@@ -12,66 +17,97 @@ class ChatsListPage extends StatefulWidget {
 class _ChatsListPageState extends State<ChatsListPage> {
   List<ParseUser> _chats = [];
   bool _isLoading = true;
+  
+  // NOVO: Variável de estado para o rodapé (índice 3 = Chats)
+  int _paginaAtual = 3;
 
   @override
   void initState() {
     super.initState();
     _fetchUserChats();
   }
+  
+  // NOVO: Lógica de navegação para o rodapé
+  void _onItemTapped(int index) async {
+    if (_paginaAtual == index) return;
+
+    if (index == 0) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => ListaObjetosPage()),
+        (Route<dynamic> route) => false,
+      );
+    } else if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SalvarObjetoPage()),
+      );
+    } else if (index == 2) {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser != null && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePage(user: currentUser),
+          ),
+        );
+      }
+    } else if (index == 3) {
+      // Já estamos na página de Chats
+    }
+  }
 
   Future<void> _fetchUserChats() async {
-  try {
-    final currentUser = await ParseUser.currentUser() as ParseUser;
-    
-    // Create two separate queries for sender and receiver
-    final QueryBuilder<ParseObject> sentQuery = QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
-      ..whereEqualTo('sender', currentUser.toPointer())
-      ..orderByDescending('createdAt');
+    // ... seu código para buscar os chats continua o mesmo ...
+    try {
+      final currentUser = await ParseUser.currentUser() as ParseUser;
+      
+      final QueryBuilder<ParseObject> sentQuery = QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
+        ..whereEqualTo('sender', currentUser.toPointer())
+        ..orderByDescending('createdAt');
 
-    final QueryBuilder<ParseObject> receivedQuery = QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
-      ..whereEqualTo('receiver', currentUser.toPointer())
-      ..orderByDescending('createdAt');
+      final QueryBuilder<ParseObject> receivedQuery = QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
+        ..whereEqualTo('receiver', currentUser.toPointer())
+        ..orderByDescending('createdAt');
 
-    // Execute both queries
-    final ParseResponse sentResponse = await sentQuery.query();
-    final ParseResponse receivedResponse = await receivedQuery.query();
+      final ParseResponse sentResponse = await sentQuery.query();
+      final ParseResponse receivedResponse = await receivedQuery.query();
 
-    if ((sentResponse.success || receivedResponse.success)) {
-      final Set<String> uniqueUserIds = {};
-      final List<ParseUser> participants = [];
+      if ((sentResponse.success || receivedResponse.success)) {
+        final Set<String> uniqueUserIds = {};
+        final List<ParseUser> participants = [];
 
-      // Process sent messages
-      if (sentResponse.success && sentResponse.results != null) {
-        for (var message in sentResponse.results!.cast<ParseObject>()) {
-          final receiver = message.get<ParseObject>('receiver');
-          if (receiver != null && receiver.objectId != currentUser.objectId && !uniqueUserIds.contains(receiver.objectId)) {
-            uniqueUserIds.add(receiver.objectId!);
-            participants.add(await receiver.fetch() as ParseUser);
+        if (sentResponse.success && sentResponse.results != null) {
+          for (var message in sentResponse.results!.cast<ParseObject>()) {
+            final receiver = message.get<ParseObject>('receiver');
+            if (receiver != null && receiver.objectId != currentUser.objectId && !uniqueUserIds.contains(receiver.objectId)) {
+              uniqueUserIds.add(receiver.objectId!);
+              participants.add(await receiver.fetch() as ParseUser);
+            }
           }
         }
-      }
 
-      // Process received messages
-      if (receivedResponse.success && receivedResponse.results != null) {
-        for (var message in receivedResponse.results!.cast<ParseObject>()) {
-          final sender = message.get<ParseObject>('sender');
-          if (sender != null && sender.objectId != currentUser.objectId && !uniqueUserIds.contains(sender.objectId)) {
-            uniqueUserIds.add(sender.objectId!);
-            participants.add(await sender.fetch() as ParseUser);
+        if (receivedResponse.success && receivedResponse.results != null) {
+          for (var message in receivedResponse.results!.cast<ParseObject>()) {
+            final sender = message.get<ParseObject>('sender');
+            if (sender != null && sender.objectId != currentUser.objectId && !uniqueUserIds.contains(sender.objectId)) {
+              uniqueUserIds.add(sender.objectId!);
+              participants.add(await sender.fetch() as ParseUser);
+            }
           }
         }
-      }
 
-      setState(() {
-        _chats = participants;
-        _isLoading = false;
-      });
+        setState(() {
+          _chats = participants;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Erro ao buscar chats: $e');
+      setState(() => _isLoading = false);
     }
-  } catch (e) {
-    print('Erro ao buscar chats: $e');
-    setState(() => _isLoading = false);
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,7 +123,8 @@ class _ChatsListPageState extends State<ChatsListPage> {
                   itemBuilder: (context, index) {
                     final user = _chats[index];
                     final nome = user.get<String>('nome') ?? 'Usuário';
-                    final inicial = nome.isNotEmpty ? nome[0].toUpperCase() : '?';
+                    final inicial =
+                        nome.isNotEmpty ? nome[0].toUpperCase() : '?';
 
                     return ListTile(
                       leading: CircleAvatar(
@@ -99,13 +136,39 @@ class _ChatsListPageState extends State<ChatsListPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ChatPage(destinatario: user),
+                            builder: (context) =>
+                                ChatPage(destinatario: user),
                           ),
                         );
                       },
                     );
                   },
                 ),
+      // NOVO: Rodapé adicionado ao Scaffold
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _paginaAtual,
+        onTap: _onItemTapped,
+        selectedItemColor: primaryColor, // Cor do seu tema
+        unselectedItemColor: Colors.grey.shade700,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Início',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'Adicionar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chats',
+          ),
+        ],
+      ),
     );
   }
 }

@@ -8,6 +8,10 @@ import 'dart:io' as io;
 
 import '../theme/colors.dart';
 
+import 'item-list.dart';
+import 'chat-list-page.dart';
+import 'profile-page.dart';
+
 class SalvarObjetoPage extends StatefulWidget {
   @override
   _SalvarObjetoPageState createState() => _SalvarObjetoPageState();
@@ -20,25 +24,45 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
 
   String? _estadoConservacao;
   String? _tipoNegociacao;
-  File? _imagemSelecionada;
-
-  final List<String> estadosConservacao = [
-    'Novo',
-    'Semi-novo',
-    'Usado',
-    'Com defeito',
-  ];
-
-  final List<String> tiposNegociacao = [
-    'Troca',
-    'Venda',
-    'Doação',
-  ];
+  
+  // NOVO: Variável de estado para o rodapé (índice 1 = Adicionar)
+  int _paginaAtual = 1;
 
   Uint8List? _webImage;
   io.File? _mobileImage;
 
+  // NOVO: Lógica de navegação para o rodapé
+  void _onItemTapped(int index) async {
+    if (_paginaAtual == index) return;
+
+    if (index == 0) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => ListaObjetosPage()),
+        (Route<dynamic> route) => false,
+      );
+    } else if (index == 1) {
+      // Já estamos na página de Adicionar
+    } else if (index == 2) {
+      final currentUser = await ParseUser.currentUser() as ParseUser?;
+      if (currentUser != null && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePage(user: currentUser),
+          ),
+        );
+      }
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ChatsListPage()),
+      );
+    }
+  }
+
   Future<void> _selecionarImagem() async {
+    // ... seu código para selecionar imagem continua o mesmo ...
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
@@ -57,6 +81,7 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
   }
 
   void _salvarObjeto() async {
+    // ... seu código para salvar o objeto continua o mesmo ...
     final currentUser = await ParseUser.currentUser() as ParseUser?;
 
     if (currentUser == null) {
@@ -70,9 +95,11 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
 
     if (kIsWeb && _webImage != null) {
       parseFile = ParseWebFile(_webImage!, name: "imagem.jpg");
-      await parseFile.save();
-    } else if (_mobileImage != null) {
+    } else if (!kIsWeb && _mobileImage != null) {
       parseFile = ParseFile(_mobileImage!);
+    }
+    
+    if (parseFile != null) {
       await parseFile.save();
     }
 
@@ -82,7 +109,7 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
       ..set('estadoConservacao', _estadoConservacao)
       ..set('preferencia', _preferenciaController.text)
       ..set('tipoNegociacao', _tipoNegociacao)
-      ..set('dono', currentUser); // <- Aqui associamos o dono
+      ..set('dono', currentUser);
 
     if (parseFile != null) {
       objeto.set('imagem', parseFile);
@@ -91,10 +118,10 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
     final response = await objeto.save();
 
     if (response.success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Objeto salvo com sucesso!')),
-    );
-    Navigator.pop(context, objeto);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Objeto salvo com sucesso!')),
+      );
+      Navigator.pop(context, true); // Retorna true para indicar sucesso
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao salvar: ${response.error?.message}')),
@@ -114,6 +141,7 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
+            // ... Todos os seus TextFields e Dropdowns continuam os mesmos ...
             TextField(
               controller: _tituloController,
               decoration: InputDecoration(labelText: 'Título'),
@@ -125,11 +153,8 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
             ),
             DropdownButtonFormField<String>(
               value: _estadoConservacao,
-              items: estadosConservacao.map((estado) {
-                return DropdownMenuItem(
-                  value: estado,
-                  child: Text(estado),
-                );
+              items: ['Novo', 'Semi-novo', 'Usado', 'Com defeito'].map((estado) {
+                return DropdownMenuItem(value: estado, child: Text(estado));
               }).toList(),
               onChanged: (valor) => setState(() => _estadoConservacao = valor),
               decoration: InputDecoration(labelText: 'Estado de Conservação'),
@@ -140,11 +165,8 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
             ),
             DropdownButtonFormField<String>(
               value: _tipoNegociacao,
-              items: tiposNegociacao.map((tipo) {
-                return DropdownMenuItem(
-                  value: tipo,
-                  child: Text(tipo),
-                );
+              items: ['Troca', 'Venda', 'Doação'].map((tipo) {
+                return DropdownMenuItem(value: tipo, child: Text(tipo));
               }).toList(),
               onChanged: (valor) => setState(() => _tipoNegociacao = valor),
               decoration: InputDecoration(labelText: 'Tipo de Negociação'),
@@ -155,13 +177,12 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
               icon: Icon(Icons.image),
               label: Text('Selecionar Imagem'),
             ),
-            if (_imagemSelecionada != null)
+            if (_mobileImage != null || _webImage != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Image.file(
-                  _imagemSelecionada!,
-                  height: 150,
-                ),
+                child: kIsWeb
+                  ? Image.memory(_webImage!, height: 150)
+                  : Image.file(_mobileImage!, height: 150),
               ),
             const SizedBox(height: 16),
             Row(
@@ -172,9 +193,7 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: contrastColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: Text('Salvar'),
@@ -188,9 +207,7 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
                       foregroundColor: primaryColor,
                       backgroundColor: contrastColor,
                       side: BorderSide(color: primaryColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: Text('Cancelar'),
@@ -200,6 +217,31 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
             ),
           ],
         ),
+      ),
+      // NOVO: Rodapé adicionado ao Scaffold
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _paginaAtual,
+        onTap: _onItemTapped,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: Colors.grey.shade700,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Início',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'Adicionar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chats',
+          ),
+        ],
       ),
     );
   }

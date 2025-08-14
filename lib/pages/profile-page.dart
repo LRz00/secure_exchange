@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
+import 'item-list.dart'; // Supondo que o nome do arquivo seja este
+import 'save-object.dart';
+import 'chat-list-page.dart';
+import '../theme/colors.dart'; // Mantenha se você tiver este arquivo de cores
+
 // Enum para controlar o estado dos botões "Pendente/Finalizada"
 enum StatusFiltro { pendente, finalizada }
 
@@ -20,6 +25,10 @@ class _ProfilePageState extends State<ProfilePage> {
   StatusFiltro _negociacaoStatus = StatusFiltro.pendente;
   StatusFiltro _propostaStatus = StatusFiltro.pendente;
 
+  // NOVO: Variável de estado para controlar o item selecionado na barra inferior
+  // O valor é 2, pois "Perfil" é o terceiro item (índice 2)
+  int _paginaAtual = 2;
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +36,45 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadNegociacoes();
     _loadPropostas();
   }
+
+  void _onItemTapped(int index) async {
+    // Se o usuário clicar no ícone que já está selecionado, não faz nada
+    if (_paginaAtual == index) return;
+
+    // Lógica para o botão "Início" (índice 0)
+    if (index == 0) {
+      // Navega para a tela inicial, limpando as telas anteriores
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => ListaObjetosPage()),
+        (Route<dynamic> route) => false,
+      );
+    }
+    // Lógica para o botão "Adicionar" (índice 1)
+    else if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SalvarObjetoPage()),
+      ).then((result) {
+        // Se um item foi salvo, recarrega os itens do perfil
+        if (result == true) {
+          _loadUserItems();
+        }
+      });
+    }
+    // O índice 2 é a própria página de Perfil, então não fazemos nada.
+    else if (index == 2) {
+      // Já estamos na página de perfil
+    }
+    // Lógica para o botão "Chats" (índice 3)
+    else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ChatsListPage()),
+      );
+    }
+  }
+
 
   Future<void> _loadUserItems() async {
     final queryBuilder = QueryBuilder<ParseObject>(ParseObject('Objeto'))
@@ -95,7 +143,6 @@ class _ProfilePageState extends State<ProfilePage> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          // O cabeçalho com avatar e nome agora fica na AppBar
           toolbarHeight: 200,
           flexibleSpace: SafeArea(
             child: Column(
@@ -119,7 +166,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
           ),
-          // Adiciona a barra de abas na parte inferior da AppBar
           bottom: const TabBar(
             labelColor: Colors.black,
             unselectedLabelColor: Colors.grey,
@@ -131,7 +177,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
         ),
-        // O corpo agora é uma TabBarView para exibir o conteúdo de cada aba
         body: TabBarView(
           children: [
             _buildMeusItensTab(),
@@ -139,21 +184,30 @@ class _ProfilePageState extends State<ProfilePage> {
             _buildPropostasTab(),
           ],
         ),
-        // Sua BottomNavigationBar original
+        
+        // ALTERADO: A barra de navegação antiga foi substituída por esta
         bottomNavigationBar: BottomNavigationBar(
-          currentIndex: 2,
+          currentIndex: _paginaAtual,
+          onTap: _onItemTapped,
+          // Use a cor do seu tema ou uma cor padrão
+          selectedItemColor: const Color.fromRGBO(40, 0, 109, 1), 
+          unselectedItemColor: Colors.grey.shade700,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.menu),
+              icon: Icon(Icons.home),
               label: 'Início',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.add),
-              label: 'Cadastrar',
+              label: 'Adicionar',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Perfil',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.chat),
+              label: 'Chats',
             ),
           ],
         ),
@@ -161,7 +215,9 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Constrói o conteúdo da primeira aba "Meus Itens"
+  // O restante do seu código (_buildMeusItensTab, _buildNegociacoesTab, etc.)
+  // permanece exatamente o mesmo. Cole ele aqui.
+  // ...
   Widget _buildMeusItensTab() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -181,7 +237,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Constrói o conteúdo da aba "Negociações"
   Widget _buildNegociacoesTab() {
     return Column(
       children: [
@@ -236,8 +291,6 @@ class _ProfilePageState extends State<ProfilePage> {
       ],
     );
   }
-
-  // Constrói o conteúdo da aba "Propostas"
 
   Widget _buildPropostasTab() {
     return Column(
@@ -295,35 +348,29 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Constrói cada card de item da lista
   Widget _buildListItem(ParseObject item) {
     final titulo = item.get<String>('titulo') ?? 'Item sem título';
     final descricao = item.get<String>('descricao') ?? '';
-    // NOVO: Busca a imagem do objeto Parse
     final imagemParseFile = item.get<ParseFileBase>('imagem');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding:
-          const EdgeInsets.all(12), // Reduzido o padding para acomodar a imagem
+          const EdgeInsets.all(12),
       decoration: BoxDecoration(
           color: const Color(0xFFF9F3FF),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade200)),
-      // ALTERADO: Usamos uma Row para colocar a imagem ao lado do texto
       child: Row(
         children: [
-          // Widget da Imagem
           ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
             child: imagemParseFile != null && imagemParseFile.url != null
-                // Se tiver imagem, mostra
                 ? Image.network(
                     imagemParseFile.url!,
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
-                    // Adiciona um placeholder enquanto carrega
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
@@ -333,7 +380,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: const Center(child: CircularProgressIndicator()),
                       );
                     },
-                    // Adiciona tratamento de erro
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         width: 80,
@@ -344,7 +390,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
                     },
                   )
-                // Se não tiver imagem, mostra um placeholder
                 : Container(
                     width: 80,
                     height: 80,
@@ -353,10 +398,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         color: Colors.grey.shade600),
                   ),
           ),
-
-          const SizedBox(width: 16), // Espaçamento entre a imagem e o texto
-
-          // Coluna do Texto
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
