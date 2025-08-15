@@ -60,3 +60,5 @@ firebase-debug.*.log
 **/google-services.json
 
 .env
+
+assets/.env
