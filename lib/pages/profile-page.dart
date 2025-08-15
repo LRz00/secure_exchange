@@ -75,7 +75,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-
   Future<void> _loadUserItems() async {
     final queryBuilder = QueryBuilder<ParseObject>(ParseObject('Objeto'))
       ..whereEqualTo('dono', widget.user);
@@ -116,6 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (res.success && res.results != null) {
       setState(() => _negociacoes = res.results!.cast<ParseObject>());
     }
+     setState(() {});
   }
 
   Future<void> _loadPropostas() async {
@@ -129,6 +129,19 @@ class _ProfilePageState extends State<ProfilePage> {
     if (res.success && res.results != null) {
       setState(() => _propostas = res.results!.cast<ParseObject>());
     }
+     setState(() {});
+  }
+
+  int _countNegociacoesPendentes() {
+    return _negociacoes
+        .where((proposta) => proposta.get<String>('status') == 'pendente')
+        .length;
+  }
+
+  int _countPropostasPendentes() {
+    return _propostas
+        .where((proposta) => proposta.get<String>('status') == 'pendente')
+        .length;
   }
 
   @override
@@ -166,14 +179,67 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
           ),
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: Colors.black,
             unselectedLabelColor: Colors.grey,
-            indicatorColor: Color.fromRGBO(40, 0, 109, 1),
+            indicatorColor: const Color.fromRGBO(40, 0, 109, 1),
             tabs: [
-              Tab(text: 'MEUS ITENS'),
-              Tab(text: 'NEGOCIAÇÕES'),
-              Tab(text: 'PROPOSTAS'),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text('MEUS ITENS'),                    
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('NEGOCIAÇÕES'),
+                    if (_countNegociacoesPendentes() > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4.0),
+                        child: CircleAvatar(
+                          radius: 8,
+                          backgroundColor: Colors.red,
+                          child: Text(
+                            _countNegociacoesPendentes().toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('PROPOSTAS'),
+                    if (_countPropostasPendentes() > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4.0),
+                        child: CircleAvatar(
+                          radius: 8,
+                          backgroundColor: Colors.red,
+                          child: Text(
+                            _countPropostasPendentes().toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -184,13 +250,13 @@ class _ProfilePageState extends State<ProfilePage> {
             _buildPropostasTab(),
           ],
         ),
-        
+
         // ALTERADO: A barra de navegação antiga foi substituída por esta
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _paginaAtual,
           onTap: _onItemTapped,
           // Use a cor do seu tema ou uma cor padrão
-          selectedItemColor: const Color.fromRGBO(40, 0, 109, 1), 
+          selectedItemColor: const Color.fromRGBO(40, 0, 109, 1),
           unselectedItemColor: Colors.grey.shade700,
           items: const [
             BottomNavigationBarItem(
@@ -355,8 +421,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding:
-          const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
           color: const Color(0xFFF9F3FF),
           borderRadius: BorderRadius.circular(12),
