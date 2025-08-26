@@ -39,7 +39,7 @@ class WelcomePage extends StatelessWidget {
                   ),
                   SizedBox(width: 16),
                   Image.asset(
-                    'assets/logo.png', // substitua se usar SVG ou outro formato
+                    'assets/logo.png', 
                     height: 64,
                     width: 64,
                   ),

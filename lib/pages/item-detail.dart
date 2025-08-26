@@ -25,7 +25,6 @@ class _DetalhesObjetoPageState extends State<DetalhesObjetoPage> {
     _carregarDono();
   }
 
-  // A função _carregarDono foi mantida exatamente como no seu código original.
   Future<void> _carregarDono() async {
     final donoPointer = widget.objeto.get<ParseUser>('dono');
 
@@ -39,33 +38,24 @@ class _DetalhesObjetoPageState extends State<DetalhesObjetoPage> {
     }
   }
 
-  // Função temporária para ser executada UMA ÚNICA VEZ
 Future<void> definirSchemaDoChat() async {
   print("Tentando definir o esquema da classe 'Chat'...");
 
-  // Criamos ponteiros para dois usuários quaisquer (não precisam existir de verdade)
   final dummyUser1 = ParseObject('_User')..objectId = 'dummy_user_id_1';
   final dummyUser2 = ParseObject('_User')..objectId = 'dummy_user_id_2';
   
-  // Criamos um objeto de Chat temporário
+
   final chatSchemaSetter = ParseObject('Chat')
     ..set('participants', [dummyUser1, dummyUser2]);
-    // A chave está aqui: estamos passando um Array de ParseObjects (Ponteiros)
 
   try {
-    // Tentamos salvar este objeto. Ele vai falhar se a classe Chat não existir,
-    // mas o Parse tentará criar a coluna 'participants' com o tipo correto.
-    // Se a classe e a coluna já existem, ele vai travar o tipo.
     final response = await chatSchemaSetter.save();
 
     if (response.success) {
       print("✅ Esquema definido com sucesso! O objeto foi salvo.");
-      // Você pode deletar este objeto de teste do seu painel depois.
       await response.result.delete();
       print("✅ Objeto de teste deletado.");
     } else {
-      // Mesmo que falhe por uma "Constraint" (se a coluna já existe), 
-      // o tipo provavelmente foi ajustado.
       print("ℹ️ Ocorreu um erro ao salvar (o que pode ser normal se a coluna já existe), mas o esquema deve ter sido atualizado. Verifique o painel.");
       print("Erro: ${response.error?.message}");
     }
@@ -84,7 +74,6 @@ Future<void> definirSchemaDoChat() async {
     final tipoNegociacao = widget.objeto.get<String>('tipoNegociacao') ?? '';
     final dataCadastro = widget.objeto.createdAt;
     
-    // Supondo que as cores venham do seu import de tema
     const Color primaryColor = Color.fromRGBO(40, 0, 109, 1);
     const Color contrastColor = Colors.white;
 
@@ -94,7 +83,6 @@ Future<void> definirSchemaDoChat() async {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // 👤 Info do dono
             if (nomeDono != null)
               Row(
                 children: [
@@ -129,7 +117,6 @@ Future<void> definirSchemaDoChat() async {
             
             const SizedBox(height: 16),
 
-            // 📷 Imagem
             if (imagem != null && imagem.url != null)
               Image.network(imagem.url!, height: 200, fit: BoxFit.cover)
             else
@@ -173,12 +160,9 @@ Future<void> definirSchemaDoChat() async {
             ),
             const SizedBox(height: 12),
             OutlinedButton(
-              // ALTERAÇÃO APLICADA AQUI
-              // O botão fica desabilitado enquanto os dados do dono não forem carregados
               onPressed: dono == null
                   ? null
                   : () {
-                      // Navega para a tela de chat, passando o objeto do dono
                       Navigator.push(
                         context,
                         MaterialPageRoute(

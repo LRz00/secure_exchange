@@ -84,8 +84,7 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
     );
   }
 
-  void _onItemTapped(int index) async { // <-- Adiciona async
-    // Lógica para o botão "Adicionar" (índice 1)
+  void _onItemTapped(int index) async { 
     if (index == 1) {
       Navigator.push(
         context,
@@ -96,7 +95,6 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
         }
       });
     } 
-    // LÓGICA PARA O BOTÃO "PERFIL" (índice 2)
     else if (index == 2) {
       final currentUser = await ParseUser.currentUser() as ParseUser?;
 
@@ -108,7 +106,6 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
           ),
         );
       } else {
-        // Opcional: Mostrar uma mensagem se o usuário não estiver logado
         if (mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Faça login para acessar o perfil.')),
@@ -180,7 +177,6 @@ class _ListaObjetosPageState extends State<ListaObjetosPage> {
             label: 'Perfil',
           ),
           BottomNavigationBarItem(
-            // Novo item adicionado
             icon: Icon(Icons.chat),
             label: 'Chats',
           ),

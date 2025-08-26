@@ -41,16 +41,12 @@ class _TradingPageState extends State<TradingPage> {
   }
 
   Future<void> _cadastrarNovoItem() async {
-    // Navega para a tela de cadastro e aguarda um resultado
     final novoItem = await Navigator.push<ParseObject>(
       context,
       MaterialPageRoute(builder: (context) => SalvarObjetoPage()),
     );
-
-    // Se o usuário salvou um novo item (e não apenas voltou)
     if (novoItem != null) {
       setState(() {
-        // Adiciona o novo item diretamente na lista da oferta
         itensOfertados.add(novoItem);
       });
     }
@@ -68,10 +64,8 @@ class _TradingPageState extends State<TradingPage> {
       appBar: AppBar(
         title: const Text('Propor Troca'),
       ),
-      // NOVO: A barra de botões agora fica aqui, fixa no rodapé
       bottomNavigationBar: _buildBottomActionBar(),
 
-      // ALTERADO: O corpo agora é uma lista simples e rolável
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -91,7 +85,7 @@ class _TradingPageState extends State<TradingPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               _buildAreaDaOferta(),
-              const SizedBox(height: 24), // Espaço extra no final do scroll
+              const SizedBox(height: 24), 
             ],
           ),
         ),
@@ -99,7 +93,6 @@ class _TradingPageState extends State<TradingPage> {
     );
   }
 
-  // Widget de card de item (sem alterações)
   Widget _buildItemCard(ParseObject item) {
     final imagem = item.get<ParseFileBase>('imagem');
     final titulo = item.get<String>('titulo') ?? 'Item';
@@ -147,7 +140,6 @@ class _TradingPageState extends State<TradingPage> {
     );
   }
 
-  // Área de oferta (com a correção anterior já aplicada)
   Widget _buildAreaDaOferta() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -235,12 +227,11 @@ class _TradingPageState extends State<TradingPage> {
     );
   }
 
-  // NOVO: Widget para a barra de botões inferior
   Widget _buildBottomActionBar() {
     final isOfferEmpty = itensOfertados.isEmpty && valorEmDinheiro == 0;
     return Container(
       padding: const EdgeInsets.fromLTRB(
-          16, 12, 16, 24), // Padding para não colar na borda
+          16, 12, 16, 24), 
       decoration: const BoxDecoration(
         color: Colors.white,
         boxShadow: [

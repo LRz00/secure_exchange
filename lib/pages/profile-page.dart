@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
-import 'item-list.dart'; // Supondo que o nome do arquivo seja este
+import 'item-list.dart'; 
 import 'save-object.dart';
 import 'chat-list-page.dart';
-import '../theme/colors.dart'; // Mantenha se você tiver este arquivo de cores
+import '../theme/colors.dart'; 
 
-// Enum para controlar o estado dos botões "Pendente/Finalizada"
 enum StatusFiltro { pendente, finalizada }
 
 class ProfilePage extends StatefulWidget {
@@ -21,12 +20,9 @@ class _ProfilePageState extends State<ProfilePage> {
   List<ParseObject> _items = [];
   bool _isLoading = true;
 
-  // Variáveis de estado para os filtros das novas abas
   StatusFiltro _negociacaoStatus = StatusFiltro.pendente;
   StatusFiltro _propostaStatus = StatusFiltro.pendente;
 
-  // NOVO: Variável de estado para controlar o item selecionado na barra inferior
-  // O valor é 2, pois "Perfil" é o terceiro item (índice 2)
   int _paginaAtual = 2;
 
   @override
@@ -38,35 +34,27 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _onItemTapped(int index) async {
-    // Se o usuário clicar no ícone que já está selecionado, não faz nada
     if (_paginaAtual == index) return;
 
-    // Lógica para o botão "Início" (índice 0)
     if (index == 0) {
-      // Navega para a tela inicial, limpando as telas anteriores
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => ListaObjetosPage()),
         (Route<dynamic> route) => false,
       );
     }
-    // Lógica para o botão "Adicionar" (índice 1)
     else if (index == 1) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => SalvarObjetoPage()),
       ).then((result) {
-        // Se um item foi salvo, recarrega os itens do perfil
         if (result == true) {
           _loadUserItems();
         }
       });
     }
-    // O índice 2 é a própria página de Perfil, então não fazemos nada.
     else if (index == 2) {
-      // Já estamos na página de perfil
     }
-    // Lógica para o botão "Chats" (índice 3)
     else if (index == 3) {
       Navigator.push(
         context,
@@ -109,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ..whereEqualTo('destinatario', widget.user)
       ..whereEqualTo('status', _negociacaoStatus.name)
       ..includeObject(
-          ['itemDesejado', 'remetente']); // Carrega os objetos relacionados
+          ['itemDesejado', 'remetente']);
 
     final res = await query.query();
     if (res.success && res.results != null) {
@@ -123,7 +111,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ..whereEqualTo('remetente', widget.user)
       ..whereEqualTo('status', _propostaStatus.name)
       ..includeObject(
-          ['itemDesejado', 'destinatario']); // Carrega os objetos relacionados
+          ['itemDesejado', 'destinatario']);
 
     final res = await query.query();
     if (res.success && res.results != null) {
@@ -150,7 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final inicial = nome.isNotEmpty ? nome[0].toUpperCase() : '?';
 
     return DefaultTabController(
-      length: 3, // O número de abas
+      length: 3,
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -251,11 +239,9 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
 
-        // ALTERADO: A barra de navegação antiga foi substituída por esta
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _paginaAtual,
           onTap: _onItemTapped,
-          // Use a cor do seu tema ou uma cor padrão
           selectedItemColor: const Color.fromRGBO(40, 0, 109, 1),
           unselectedItemColor: Colors.grey.shade700,
           items: const [
@@ -281,9 +267,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // O restante do seu código (_buildMeusItensTab, _buildNegociacoesTab, etc.)
-  // permanece exatamente o mesmo. Cole ele aqui.
-  // ...
   Widget _buildMeusItensTab() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -348,7 +331,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           ? Text('R\$ ${proposta.get<num>('valorEmDinheiro')}')
                           : null,
                       onTap: () {
-                        // Aqui você pode adicionar navegação para detalhes da proposta
                       },
                     );
                   },
@@ -404,7 +386,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           ? Text('R\$ ${proposta.get<num>('valorEmDinheiro')}')
                           : null,
                       onTap: () {
-                        // Aqui você pode adicionar navegação para detalhes da proposta
                       },
                     );
                   },

@@ -48,7 +48,6 @@ class _TelaCadastroPageState extends State<TelaCadastroPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Conta criada com sucesso!')),
       );
-      // Navegar para a tela principal ou de login
     } else {
       setState(() {
         _mensagemErro = response.error?.message ?? 'Erro desconhecido.';
@@ -70,14 +69,12 @@ class _TelaCadastroPageState extends State<TelaCadastroPage> {
           key: _formKey,
           child: Column(
             children: [
-              // Logo SVG
               Image.asset(
                 'assets/logo.png',
                 height: 100,
               ),
               SizedBox(height: 24),
 
-              // Nome
               TextFormField(
                 controller: _nomeController,
                 decoration: InputDecoration(labelText: 'Nome'),
@@ -85,7 +82,6 @@ class _TelaCadastroPageState extends State<TelaCadastroPage> {
                     value!.isEmpty ? 'Informe seu nome' : null,
               ),
 
-              // E-mail
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(labelText: 'E-mail'),
@@ -94,7 +90,6 @@ class _TelaCadastroPageState extends State<TelaCadastroPage> {
                     value!.isEmpty ? 'Informe seu e-mail' : null,
               ),
 
-              // Senha
               TextFormField(
                 controller: _senhaController,
                 decoration: InputDecoration(labelText: 'Senha'),
@@ -103,7 +98,6 @@ class _TelaCadastroPageState extends State<TelaCadastroPage> {
                     value!.length < 6 ? 'Mínimo 6 caracteres' : null,
               ),
 
-              // Endereço
               TextFormField(
                 controller: _ruaController,
                 decoration: InputDecoration(labelText: 'Rua'),
@@ -119,14 +113,12 @@ class _TelaCadastroPageState extends State<TelaCadastroPage> {
 
               SizedBox(height: 16),
 
-              // Mensagem de erro
               if (_mensagemErro != null)
                 Text(_mensagemErro!,
                     style: TextStyle(color: Colors.red, fontSize: 14)),
 
               SizedBox(height: 16),
 
-              // Botão
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -145,7 +137,6 @@ class _TelaCadastroPageState extends State<TelaCadastroPage> {
                 ),
               ),
 
-              // Link para login
               TextButton(
                 onPressed: () {
                    Navigator.of(context).pushReplacementNamed('/login');

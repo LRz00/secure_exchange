@@ -13,14 +13,12 @@ class _SelectMyItemPageState extends State<SelectMyItemPage> {
   Future<List<ParseObject>> _loadMyItems() async {
     final currentUser = await ParseUser.currentUser();
     if (currentUser == null) {
-      return []; // Retorna lista vazia se não houver usuário logado
+      return []; 
     }
 
-    // Query para buscar objetos onde o 'dono' é o usuário atual
     final query = QueryBuilder<ParseObject>(ParseObject('Objeto'))
       ..whereEqualTo('dono', currentUser);
-      // ATENÇÃO: Verifique se sua classe de itens se chama 'Objeto'
-      // e se a coluna de dono se chama 'dono'.
+
 
     final response = await query.query();
 
@@ -65,8 +63,6 @@ class _SelectMyItemPageState extends State<SelectMyItemPage> {
                     : const Icon(Icons.image_not_supported, size: 50),
                 title: Text(titulo),
                 onTap: () {
-                  // Ao tocar, a tela fecha e "retorna" o objeto selecionado
-                  // para a tela anterior (TradingPage)
                   Navigator.of(context).pop(item);
                 },
               );

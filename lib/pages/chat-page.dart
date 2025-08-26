@@ -4,7 +4,6 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 import 'profile-page.dart';
 
-// Definição das cores personalizadas
 const Color roxo = Color.fromRGBO(40, 0, 109, 1);
 const Color cinzaClaro = Color.fromRGBO(230, 229, 235, 1);
 const Color branco = Colors.white;
@@ -52,21 +51,18 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final currentUser = await ParseUser.currentUser() as ParseUser;
 
-      // Query para mensagens enviadas pelo usuário atual para o destinatário
       final QueryBuilder<ParseObject> sentMessagesQuery =
           QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
             ..whereEqualTo('sender', currentUser.toPointer())
             ..whereEqualTo('receiver', widget.destinatario.toPointer())
-            ..orderByAscending('createdAt'); // Alterado para orderByAscending
+            ..orderByAscending('createdAt'); 
 
-      // Query para mensagens recebidas do destinatário
       final QueryBuilder<ParseObject> receivedMessagesQuery =
           QueryBuilder<ParseObject>(ParseObject('ChatMessage'))
             ..whereEqualTo('sender', widget.destinatario.toPointer())
             ..whereEqualTo('receiver', currentUser.toPointer())
-            ..orderByAscending('createdAt'); // Alterado para orderByAscending
+            ..orderByAscending('createdAt'); 
 
-      // Executa ambas as queries
       final ParseResponse sentResponse = await sentMessagesQuery.query();
       final ParseResponse receivedResponse =
           await receivedMessagesQuery.query();
@@ -77,12 +73,11 @@ class _ChatPageState extends State<ChatPage> {
         final List<ParseObject> receivedMessages =
             receivedResponse.results?.cast<ParseObject>() ?? [];
 
-        // Combina todas as mensagens
         final List<ParseObject> allMessages = [
           ...sentMessages,
           ...receivedMessages
         ];
-        // Ordena em ordem crescente (mais antigas primeiro, mais recentes por último)
+
         allMessages.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
 
         setState(() {
@@ -117,7 +112,7 @@ class _ChatPageState extends State<ChatPage> {
 
       if (response.success) {
         _messageController.clear();
-        await _fetchMessages(); // Atualiza a lista imediatamente
+        await _fetchMessages();
       } else {
         print('Erro ao enviar mensagem: ${response.error?.message}');
       }
@@ -189,11 +184,9 @@ class _ChatPageState extends State<ChatPage> {
             child: _messages.isEmpty
                 ? const Center(child: Text("Envie uma mensagem para começar. Nunca compartilhe informações pessoais com estranhos."))
                 : ListView.builder(
-                    // Remova o reverse: true
                     padding: const EdgeInsets.all(10.0),
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
-                      // Use o índice diretamente sem inverter
                       final message = _messages[index];
                       return _MessageBubble(
                         text: message['text'],

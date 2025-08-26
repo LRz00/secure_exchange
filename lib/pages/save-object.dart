@@ -25,13 +25,11 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
   String? _estadoConservacao;
   String? _tipoNegociacao;
   
-  // NOVO: Variável de estado para o rodapé (índice 1 = Adicionar)
   int _paginaAtual = 1;
 
   Uint8List? _webImage;
   io.File? _mobileImage;
 
-  // NOVO: Lógica de navegação para o rodapé
   void _onItemTapped(int index) async {
     if (_paginaAtual == index) return;
 
@@ -42,7 +40,6 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
         (Route<dynamic> route) => false,
       );
     } else if (index == 1) {
-      // Já estamos na página de Adicionar
     } else if (index == 2) {
       final currentUser = await ParseUser.currentUser() as ParseUser?;
       if (currentUser != null && mounted) {
@@ -62,7 +59,6 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
   }
 
   Future<void> _selecionarImagem() async {
-    // ... seu código para selecionar imagem continua o mesmo ...
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
@@ -81,7 +77,6 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
   }
 
   void _salvarObjeto() async {
-    // ... seu código para salvar o objeto continua o mesmo ...
     final currentUser = await ParseUser.currentUser() as ParseUser?;
 
     if (currentUser == null) {
@@ -121,7 +116,7 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Objeto salvo com sucesso!')),
       );
-      Navigator.pop(context, true); // Retorna true para indicar sucesso
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao salvar: ${response.error?.message}')),
@@ -141,7 +136,6 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // ... Todos os seus TextFields e Dropdowns continuam os mesmos ...
             TextField(
               controller: _tituloController,
               decoration: InputDecoration(labelText: 'Título'),
@@ -218,7 +212,6 @@ class _SalvarObjetoPageState extends State<SalvarObjetoPage> {
           ],
         ),
       ),
-      // NOVO: Rodapé adicionado ao Scaffold
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _paginaAtual,
         onTap: _onItemTapped,

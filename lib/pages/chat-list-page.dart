@@ -18,7 +18,6 @@ class _ChatsListPageState extends State<ChatsListPage> {
   List<ParseUser> _chats = [];
   bool _isLoading = true;
   
-  // NOVO: Variável de estado para o rodapé (índice 3 = Chats)
   int _paginaAtual = 3;
 
   @override
@@ -27,7 +26,6 @@ class _ChatsListPageState extends State<ChatsListPage> {
     _fetchUserChats();
   }
   
-  // NOVO: Lógica de navegação para o rodapé
   void _onItemTapped(int index) async {
     if (_paginaAtual == index) return;
 
@@ -53,12 +51,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
         );
       }
     } else if (index == 3) {
-      // Já estamos na página de Chats
     }
   }
 
   Future<void> _fetchUserChats() async {
-    // ... seu código para buscar os chats continua o mesmo ...
     try {
       final currentUser = await ParseUser.currentUser() as ParseUser;
       
@@ -144,11 +140,10 @@ class _ChatsListPageState extends State<ChatsListPage> {
                     );
                   },
                 ),
-      // NOVO: Rodapé adicionado ao Scaffold
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _paginaAtual,
         onTap: _onItemTapped,
-        selectedItemColor: primaryColor, // Cor do seu tema
+        selectedItemColor: primaryColor, 
         unselectedItemColor: Colors.grey.shade700,
         items: const [
           BottomNavigationBarItem(
